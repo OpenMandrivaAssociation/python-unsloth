@@ -32,14 +32,20 @@ Requires:	python%{pyver}dist(pyyaml)
 Requires:	python%{pyver}dist(click)
 Requires:	python%{pyver}dist(rich)
 Requires:	python%{pyver}dist(typer)
-# Optional NVIDIA-centric stack — not needed for PEFT LoRA on ROCm.
-Recommends:	python%{pyver}dist(sentencepiece)
-Recommends:	python%{pyver}dist(datasets)
-Recommends:	python%{pyver}dist(trl)
+Requires:	python%{pyver}dist(tyro)
+Requires:	python%{pyver}dist(structlog)
+Requires:	python%{pyver}dist(nest-asyncio)
+Requires:	python%{pyver}dist(hf-transfer)
+Requires:	python%{pyver}dist(torchvision)
+Requires:	python%{pyver}dist(datasets)
+Requires:	python%{pyver}dist(trl)
+Requires:	python%{pyver}dist(sentencepiece)
 Recommends:	python%{pyver}dist(bitsandbytes)
 Recommends:	python%{pyver}dist(triton)
 Recommends:	python%{pyver}dist(xformers)
-Recommends:	python%{pyver}dist(torchvision)
+
+# Do not let the generator emit NVIDIA-only extras as hard Requires.
+%global __requires_exclude ^python[0-9.]+dist\\((bitsandbytes|triton|xformers)\\)
 
 %description
 Unsloth patches Hugging Face Transformers / PEFT for faster LoRA and
@@ -52,6 +58,28 @@ or load it at runtime via llama-cli --lora.
 
 NVIDIA-only extras (bitsandbytes, xformers, triton) are recommended
 when present, not required.
+
+# Accept cooker torch 2.13 / transformers 5.15 / current datasets+trl.
+# Drop NVIDIA-only hard deps so the auto-requires generator cannot
+# emit uninstallable python3.14dist() pins.
+%prep -a
+python - <<'PY'
+from pathlib import Path
+import re
+p = Path("pyproject.toml")
+t = p.read_text()
+t = t.replace('"torch>=2.4.0,<2.12.0"', '"torch>=2.4.0"')
+t = t.replace('"datasets>=3.4.1,!=4.0.*,!=4.1.0,<4.4.0"', '"datasets>=3.4.1"')
+t = t.replace('"trl>=0.18.2,!=0.19.0,<=0.24.0"', '"trl>=0.18.2"')
+t = re.sub(r'"transformers>=4\.51\.3,[^"]+"', '"transformers>=4.51.3"', t)
+out = []
+for line in t.splitlines(True):
+    if any(k in line for k in ("bitsandbytes", "triton>=", "triton-windows", "xformers>=")):
+        continue
+    out.append(line)
+p.write_text("".join(out))
+print("patched pyproject.toml")
+PY
 
 # pip writes .pyc then touches .py; extra tests treat that as
 # python-bytecode-inconsistent-mtime (over the badness cap).
