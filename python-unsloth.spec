@@ -53,6 +53,12 @@ or load it at runtime via llama-cli --lora.
 NVIDIA-only extras (bitsandbytes, xformers, triton) are recommended
 when present, not required.
 
+# pip writes .pyc then touches .py; extra tests treat that as
+# python-bytecode-inconsistent-mtime (over the badness cap).
+%install -a
+find %{buildroot} -type d -name '__pycache__' -exec rm -rf {} +
+find %{buildroot} -name '*.pyc' -delete
+
 %files
 %doc README.md
 %license LICENSE
