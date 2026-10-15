@@ -1,6 +1,6 @@
 Name:		python-unsloth
 Version:	2026.8.18
-Release:	1
+Release:	2
 Summary:	Faster LoRA / QLoRA / RL fine-tuning for LLMs
 License:	Apache-2.0 AND AGPL-3.0-only
 Group:		Development/Python
@@ -9,7 +9,7 @@ Source0:	https://files.pythonhosted.org/packages/source/u/unsloth/unsloth-%{vers
 BuildArch:	noarch
 BuildSystem:	python
 BuildRequires:	python
-BuildRequires:	pkgconfig(python)
+BuildRequires:	pkgconfig(python3)
 BuildRequires:	python%{pyver}dist(pip)
 BuildRequires:	python%{pyver}dist(setuptools)
 BuildRequires:	python%{pyver}dist(setuptools-scm)
