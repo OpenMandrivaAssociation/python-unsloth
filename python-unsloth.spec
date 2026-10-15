@@ -68,6 +68,14 @@ from pathlib import Path
 import re
 p = Path("pyproject.toml")
 t = p.read_text()
+t2, n = re.subn(
+    r'(?m)^requires-python\s*=\s*([\'"])[^\'"]*\1',
+    'requires-python = ">=3.9"',
+    t,
+)
+if n != 1:
+    raise SystemExit(f"requires-python replacements: {n}")
+t = t2
 t = t.replace('"torch>=2.4.0,<2.12.0"', '"torch>=2.4.0"')
 t = t.replace('"datasets>=3.4.1,!=4.0.*,!=4.1.0,<4.4.0"', '"datasets>=3.4.1"')
 t = t.replace('"trl>=0.18.2,!=0.19.0,<=0.24.0"', '"trl>=0.18.2"')
